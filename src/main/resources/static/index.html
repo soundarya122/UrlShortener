@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+	</head>
+    <body style="margin: 20px">
+		<style>
+			.urlBox{
+				float: left;
+				margin-left: 20px;
+				padding: 0px 10px 0px 10px;
+				background-color: #b9ecff;
+				font-size: 22px;
+			}
+			.urlBox a{
+				text-decoration: none;
+			}
+			.urlBox:hover{
+				background-color: #ffd920;
+			}
+		</style>
+		<script>
+			function isValidURL(string) {
+				var res = string.match(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/g);
+				return (res !== null)
+			};
+			function ShortenUrl(){
+		
+				var field = $("#url")
+				var validUrl = isValidURL(field[0].value)
+				if(!validUrl){
+					field[0].setCustomValidity("Please enter valid URL")
+					field[0].reportValidity()
+					return;
+				}
+		
+				fetch("/url/generate", {
+					method: 'post',
+					body: JSON.stringify({"url":document.getElementById('url').value}),
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					}
+				}).then((response) => {
+					return response.json()
+				}).then((res) => {
+					document.getElementById('shortUrl').text = res.shortUrl;
+					document.getElementById('shortUrl').href = "url/"+res.shortUrl;
+					
+					document.getElementById('id').text = res.id;
+					document.getElementById('id').href = "url/id/"+res.id;
+					getAllUrls();
+				}).catch((error) => {
+					console.log(error)
+				})
+			}
+			function getAllUrls(){
+				fetch("/url/allUrls", {
+					method: 'get',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					}
+				}).then((response) => {
+					return response.json()
+				}).then((res) => {
+					console.log(res.length)
+					var rows = "";
+					res.forEach((itemData) => {
+						console.log(itemData)
+						rows += "<tr>"+
+									"<td style='width:50px; text-align:center;' >" + itemData.id + "</td>"+
+									"<td style='width:800px; overflow-wrap: break-word; border: 1px solid black;'>" + itemData.originalUrl + "</td>"+
+									"<td style='width:130px'><a target='_blank' href=url/"+itemData.shortUrl+">"+ itemData.shortUrl + "</a></td>"+
+									"<td style='width:130px'><a target='_blank' href=url/id/"+itemData.id+">"+ itemData.id + "</a></td>"+
+								"</tr>";
+					});
+					document.getElementById('data').innerHTML = rows;
+				}).catch((error) => {
+					console.log(error)
+				})
+			}
+			
+		</script>
+		<div style="width:800px;">
+			<div class="input-group mb-3">
+			<div class="input-group-prepend">
+				<span class="input-group-text" id="basic-addon1">URL</span>
+			</div>
+			<input id="url" type="text" class="form-control" placeholder="Enter URL" aria-label="Username" aria-describedby="basic-addon1">
+			<input type="submit" class="btn btn-primary" value="Shorten" onclick="ShortenUrl()" />
+			<div style="width:200px">
+				<div class="urlBox"><a id="shortUrl" style="width:100px" target="_blank"></a></div>
+				<div class="urlBox"><a id="id" style="width:100px" target="_blank"></a></div>
+			</div>
+			</div>
+	`	</div>
+			
+		<div>
+			<br><div onclick="getAllUrls()" style="font-size: 30px; font-weight: bold; color: blue; cursor: pointer;">Shortened <span style="font-size: 16px; font-weight: 200;">URLs history</span></div>
+			<div>
+				<table id="itemList" class="table table-striped w-auto" style="border:1px solid black">
+					<thead style="background-color: #b0deff;">
+						<tr>
+							<th rowspan="2" style='width:50px;text-align:center;'>#</th>
+							<th rowspan="2" style='width:800px; border: 1px solid black;'>Original Url</th>
+							<th colspan="2" style='width:130px; text-align:center'>Shortened Url</th style='width:50px;'>
+						</tr>
+						<tr>
+							<th>By Hash</th>
+							<th>By number</th>
+						</tr>
+					</thead>
+					<tbody id="data">
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>	
+    </body>
+</html>
